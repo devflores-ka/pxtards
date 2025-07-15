@@ -1,3 +1,4 @@
+// server/routes/auth.js
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const pool = require('../config/db');
@@ -15,7 +16,7 @@ const router = express.Router();
 // Rate limiting específico para auth
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // máximo 5 intentos por IP
+  max: 10, // Aumentado a 10 para desarrollo
   message: {
     message: 'Too many authentication attempts, please try again later.'
   },
@@ -28,16 +29,25 @@ const authLimiter = rateLimit({
 // @access  Public
 router.post('/register', authLimiter, async (req, res) => {
   try {
+    console.log('📝 Datos recibidos en el registro:', req.body);
+    
     // Validar datos de entrada
     const { error, value } = registerSchema.validate(req.body);
+    
     if (error) {
+      console.error('❌ Error de validación:', error.details);
       return res.status(400).json({
         message: 'Validation error',
-        details: error.details.map(detail => detail.message)
+        details: error.details.map(detail => ({
+          field: detail.path[0],
+          message: detail.message
+        }))
       });
     }
 
-    const { username, email, password, displayName } = value;
+    const { username, email, password, displayName, isCreator } = value;
+    
+    console.log('✅ Datos validados:', { username, email, displayName, isCreator });
 
     // Verificar si el usuario ya existe
     const existingUser = await pool.query(
@@ -46,6 +56,7 @@ router.post('/register', authLimiter, async (req, res) => {
     );
 
     if (existingUser.rows.length > 0) {
+      console.log('❌ Usuario ya existe');
       return res.status(400).json({
         message: 'User already exists with this email or username'
       });
@@ -56,13 +67,14 @@ router.post('/register', authLimiter, async (req, res) => {
 
     // Crear usuario
     const result = await pool.query(
-      `INSERT INTO users (username, email, password_hash, display_name) 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO users (username, email, password_hash, display_name, is_creator) 
+       VALUES ($1, $2, $3, $4, $5) 
        RETURNING id, username, email, display_name, is_creator, is_verified, created_at`,
-      [username, email, hashedPassword, displayName || username]
+      [username, email, hashedPassword, displayName || username, isCreator || false]
     );
 
     const user = result.rows[0];
+    console.log('✅ Usuario creado:', user);
 
     // Generar token
     const token = generateToken(user.id);
@@ -82,9 +94,10 @@ router.post('/register', authLimiter, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Register error:', error);
+    console.error('❌ Register error:', error);
     res.status(500).json({
-      message: 'Server error during registration'
+      message: 'Server error during registration',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -94,12 +107,19 @@ router.post('/register', authLimiter, async (req, res) => {
 // @access  Public
 router.post('/login', authLimiter, async (req, res) => {
   try {
+    console.log('📝 Datos recibidos en el login:', req.body);
+    
     // Validar datos de entrada
     const { error, value } = loginSchema.validate(req.body);
+    
     if (error) {
+      console.error('❌ Error de validación:', error.details);
       return res.status(400).json({
         message: 'Validation error',
-        details: error.details.map(detail => detail.message)
+        details: error.details.map(detail => ({
+          field: detail.path[0],
+          message: detail.message
+        }))
       });
     }
 
@@ -112,6 +132,7 @@ router.post('/login', authLimiter, async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      console.log('❌ Usuario no encontrado');
       return res.status(401).json({
         message: 'Invalid credentials'
       });
@@ -122,6 +143,7 @@ router.post('/login', authLimiter, async (req, res) => {
     // Verificar password
     const isPasswordValid = await comparePassword(password, user.password_hash);
     if (!isPasswordValid) {
+      console.log('❌ Password incorrecto');
       return res.status(401).json({
         message: 'Invalid credentials'
       });
@@ -135,6 +157,8 @@ router.post('/login', authLimiter, async (req, res) => {
 
     // Generar token
     const token = generateToken(user.id);
+
+    console.log('✅ Login exitoso para:', user.username);
 
     res.json({
       message: 'Login successful',
@@ -152,9 +176,10 @@ router.post('/login', authLimiter, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
     res.status(500).json({
-      message: 'Server error during login'
+      message: 'Server error during login',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -201,7 +226,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get profile error:', error);
+    console.error('❌ Get profile error:', error);
     res.status(500).json({
       message: 'Server error fetching profile'
     });
@@ -222,9 +247,29 @@ router.post('/refresh', authMiddleware, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Refresh token error:', error);
+    console.error('❌ Refresh token error:', error);
     res.status(500).json({
       message: 'Server error refreshing token'
+    });
+  }
+});
+
+// @route   POST /api/auth/logout
+// @desc    Cerrar sesión
+// @access  Private
+router.post('/logout', authMiddleware, async (req, res) => {
+  try {
+    // Aquí podrías invalidar el token si usas una blacklist
+    // Por ahora solo confirmamos el logout
+    
+    res.json({
+      message: 'Logged out successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    res.status(500).json({
+      message: 'Server error during logout'
     });
   }
 });
