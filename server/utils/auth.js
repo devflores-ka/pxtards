@@ -1,8 +1,9 @@
+// server/utils/auth.js
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 
-// Esquemas de validación
+// Esquemas de validación mejorados
 const registerSchema = Joi.object({
   username: Joi.string()
     .alphanum()
@@ -24,10 +25,12 @@ const registerSchema = Joi.object({
     }),
   password: Joi.string()
     .min(6)
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)'))
+    .max(128)
+    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$'))
     .required()
     .messages({
       'string.min': 'Password must be at least 6 characters long',
+      'string.max': 'Password must be less than 128 characters',
       'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
       'any.required': 'Password is required'
     }),
@@ -35,9 +38,16 @@ const registerSchema = Joi.object({
     .min(2)
     .max(100)
     .optional()
+    .allow('')
     .messages({
       'string.min': 'Display name must be at least 2 characters long',
       'string.max': 'Display name must be less than 100 characters'
+    }),
+  isCreator: Joi.boolean()
+    .optional()
+    .default(false)
+    .messages({
+      'boolean.base': 'isCreator must be a boolean value'
     })
 });
 
@@ -81,11 +91,30 @@ const verifyToken = (token) => {
   return jwt.verify(token, process.env.JWT_SECRET);
 };
 
+// Función para validar password manualmente (debugging)
+const validatePassword = (password) => {
+  const checks = {
+    minLength: password.length >= 6,
+    hasLowercase: /[a-z]/.test(password),
+    hasUppercase: /[A-Z]/.test(password),
+    hasNumber: /\d/.test(password)
+  };
+  
+  const isValid = Object.values(checks).every(check => check);
+  
+  return {
+    isValid,
+    checks,
+    password: password
+  };
+};
+
 module.exports = {
   registerSchema,
   loginSchema,
   hashPassword,
   comparePassword,
   generateToken,
-  verifyToken
+  verifyToken,
+  validatePassword
 };
