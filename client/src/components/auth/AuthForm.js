@@ -8,6 +8,7 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Estado local para prevenir double-submit
   
   const { login, register: registerUser, isLoading } = useAuth();
   
@@ -22,7 +23,16 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
   const password = watch('password');
 
   const onSubmit = async (data) => {
+    // Prevenir múltiples envíos
+    if (isSubmitting || isLoading) {
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
+      
+      console.log('🔄 Procesando formulario:', { tab: activeTab, email: data.email }); // Debug
+      
       if (activeTab === 'login') {
         await login({
           email: data.email,
@@ -38,20 +48,33 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
         });
       }
       
+      // Solo cerrar y resetear si todo fue exitoso
+      console.log('✅ Formulario procesado exitosamente');
       onClose?.();
       reset();
+      
     } catch (error) {
+      console.error('❌ Error en el formulario:', error);
       // El error ya se maneja en el hook useAuth con toast
-      console.error('Error en el formulario:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const switchTab = (tab) => {
+    // Prevenir cambio de tab si se está procesando
+    if (isSubmitting || isLoading) {
+      return;
+    }
+    
     setActiveTab(tab);
     reset();
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
+
+  // Estado combinado para deshabilitar el formulario
+  const isDisabled = isSubmitting || isLoading;
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -59,7 +82,8 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
       <div className="flex bg-black/30 rounded-lg p-1 mb-6">
         <button
           onClick={() => switchTab('login')}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+          disabled={isDisabled}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
             activeTab === 'login' 
               ? 'bg-purple-600 text-white' 
               : 'text-purple-300 hover:text-white'
@@ -69,7 +93,8 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
         </button>
         <button
           onClick={() => switchTab('register')}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+          disabled={isDisabled}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
             activeTab === 'register' 
               ? 'bg-purple-600 text-white' 
               : 'text-purple-300 hover:text-white'
@@ -96,13 +121,14 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
                   message: 'Máximo 30 caracteres'
                 },
                 pattern: {
-                  value: /^[a-zA-Z0-9]+$/,
-                  message: 'Solo letras y números'
+                  value: /^[a-zA-Z0-9_]+$/,
+                  message: 'Solo letras, números y guiones bajos'
                 }
               })}
               type="text"
               placeholder="Nombre de usuario"
-              className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+              disabled={isDisabled}
+              className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none disabled:opacity-50"
             />
             {errors.username && (
               <p className="text-red-400 text-sm mt-1">{errors.username.message}</p>
@@ -126,7 +152,8 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
               })}
               type="text"
               placeholder="Nombre para mostrar (opcional)"
-              className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+              disabled={isDisabled}
+              className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none disabled:opacity-50"
             />
             {errors.displayName && (
               <p className="text-red-400 text-sm mt-1">{errors.displayName.message}</p>
@@ -146,7 +173,8 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
             })}
             type="email"
             placeholder="Email"
-            className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+            disabled={isDisabled}
+            className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none disabled:opacity-50"
           />
           {errors.email && (
             <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
@@ -161,22 +189,18 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
               minLength: {
                 value: 6,
                 message: 'Mínimo 6 caracteres'
-              },
-              ...(activeTab === 'register' && {
-                pattern: {
-                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                  message: 'Debe contener mayúscula, minúscula y número'
-                }
-              })
+              }
             })}
             type={showPassword ? 'text' : 'password'}
             placeholder="Contraseña"
-            className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+            disabled={isDisabled}
+            className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none disabled:opacity-50"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+            disabled={isDisabled}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white disabled:opacity-50"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
@@ -195,12 +219,14 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
               })}
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirmar contraseña"
-              className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+              disabled={isDisabled}
+              className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none disabled:opacity-50"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              disabled={isDisabled}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white disabled:opacity-50"
             >
               {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
@@ -216,7 +242,8 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
             <input 
               {...register('isCreator')}
               type="checkbox" 
-              className="rounded border-purple-500" 
+              disabled={isDisabled}
+              className="rounded border-purple-500 bg-black/50 text-purple-600 focus:ring-purple-500 focus:ring-offset-0 disabled:opacity-50" 
             />
             Quiero ser creador de contenido
           </label>
@@ -225,11 +252,11 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
         {/* Botón de submit */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isDisabled}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
         >
-          {isLoading && <Loader2 className="animate-spin" size={20} />}
-          {isLoading 
+          {isDisabled && <Loader2 className="animate-spin" size={20} />}
+          {isDisabled 
             ? (activeTab === 'login' ? 'Entrando...' : 'Creando cuenta...') 
             : (activeTab === 'login' ? 'Entrar' : 'Crear Cuenta')
           }
@@ -242,7 +269,8 @@ const AuthForm = ({ onClose, initialTab = 'login' }) => {
           {activeTab === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
           <button 
             onClick={() => switchTab(activeTab === 'login' ? 'register' : 'login')}
-            className="text-purple-400 hover:text-purple-300 ml-1 font-medium"
+            disabled={isDisabled}
+            className="text-purple-400 hover:text-purple-300 ml-1 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {activeTab === 'login' ? 'Regístrate aquí' : 'Inicia sesión aquí'}
           </button>

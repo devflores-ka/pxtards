@@ -1,369 +1,102 @@
+// client/src/pages/Home/index.js
 import React, { useState, useEffect } from 'react';
 import { 
-  Eye, 
-  EyeOff, 
-  Heart, 
-  Lock, 
-  Crown, 
   Flame, 
+  Heart, 
+  MessageCircle, 
+  Star, 
+  Crown, 
+  Shield, 
   Users, 
-  Star,
-  Play,
-  MessageCircle,
-  Gift,
-  Shield,
-  ChevronRight,
-  X,
-  Loader2,
+  Camera, 
+  Lock,
   User,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 import { useAuth } from '../../hooks/useAuth';
+import AuthForm from '../../components/auth/AuthForm';
+import Dashboard from '../Dashboard';
 
 const Home = () => {
-  const [isAgeVerified, setIsAgeVerified] = useState(false);
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { user, isAuthenticated, login, register: registerUser, logout, isLoading } = useAuth();
+  // Efecto para monitorear cambios de autenticación
+  useEffect(() => {
+    console.log('🔍 Estado de autenticación cambió:', { 
+      isAuthenticated, 
+      user: user?.username,
+      isLoading 
+    });
+  }, [isAuthenticated, user, isLoading]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    reset
-  } = useForm();
-
-  const password = watch('password');
-
-  // Simulación de contenido para mostrar
-  const featuredCreators = [
-    {
-      id: 1,
-      name: "MistressDark",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-      subscribers: "2.3K",
-      isOnline: true,
-      preview: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=300&h=400&fit=crop"
-    },
-    {
-      id: 2,
-      name: "SinfulQueen",
-      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
-      subscribers: "4.1K",
-      isOnline: false,
-      preview: "https://images.unsplash.com/photo-1509909756405-be0199881695?w=300&h=400&fit=crop"
-    },
-    {
-      id: 3,
-      name: "DarkDesire",
-      image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=150&h=150&fit=crop&crop=face",
-      subscribers: "1.8K",
-      isOnline: true,
-      preview: "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=300&h=400&fit=crop"
-    }
-  ];
-
-  const onSubmit = async (data) => {
-    try {
-      console.log('Datos del formulario:', data); // Debug
-      
-      if (activeTab === 'login') {
-        await login({
-          email: data.email,
-          password: data.password
-        });
-      } else {
-        await registerUser({
-          username: data.username,
-          email: data.email,
-          password: data.password,
-          displayName: data.displayName || data.username,
-          isCreator: data.isCreator || false
-        });
-      }
-      
+  // Cerrar modal cuando se autentica exitosamente
+  useEffect(() => {
+    if (isAuthenticated && showLoginModal) {
+      console.log('✅ Usuario autenticado, cerrando modal');
       setShowLoginModal(false);
-      reset();
-    } catch (error) {
-      console.error('Error en el formulario:', error);
     }
-  };
+  }, [isAuthenticated, showLoginModal]);
 
-  const switchTab = (tab) => {
-    setActiveTab(tab);
-    reset();
-    setShowPassword(false);
-    setShowConfirmPassword(false);
-  };
+  // Si el usuario está autenticado, mostrar el dashboard
+  if (isAuthenticated && user) {
+    console.log('🚀 Redirigiendo al Dashboard para:', user.username);
+    return <Dashboard />;
+  }
 
-  if (!isAgeVerified) {
+  // Si aún está cargando, mostrar loader
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black flex items-center justify-center p-4">
-        <div className="bg-black/80 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full border border-purple-500/30">
-          <div className="text-center mb-6">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-              PXTards
-            </h1>
-            <p className="text-purple-300 text-sm">Contenido Extremo para Adultos</p>
-          </div>
-          
-          <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className="text-red-400" size={20} />
-              <h3 className="text-red-400 font-semibold">Advertencia de Contenido</h3>
-            </div>
-            <p className="text-red-300 text-sm">
-              Este sitio contiene material explícito y fetiches extremos. 
-              Solo para mayores de 18 años.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <p className="text-white text-center">¿Eres mayor de 18 años?</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setIsAgeVerified(true)}
-                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 px-4 rounded-lg font-semibold transition-all"
-              >
-                Sí, soy mayor
-              </button>
-              <button
-                onClick={() => window.location.href = 'https://google.com'}
-                className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold transition-all"
-              >
-                No, salir
-              </button>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400 mx-auto"></div>
+          <p className="text-white mt-4">Cargando...</p>
         </div>
       </div>
     );
   }
 
-  const LoginModal = () => (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-purple-900 to-black rounded-2xl p-6 max-w-md w-full border border-purple-500/30">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">
-            {activeTab === 'login' ? 'Iniciar Sesión' : 'Registro'}
-          </h2>
-          <button 
-            onClick={() => setShowLoginModal(false)}
-            className="text-gray-400 hover:text-white"
-          >
-            <X size={24} />
-          </button>
-        </div>
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+  };
 
-        <div className="flex bg-purple-900/50 rounded-lg p-1 mb-6">
-          <button
-            onClick={() => switchTab('login')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'login' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-purple-300 hover:text-white'
-            }`}
-          >
-            Iniciar Sesión
-          </button>
-          <button
-            onClick={() => switchTab('register')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'register' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-purple-300 hover:text-white'
-            }`}
-          >
-            Registro
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {activeTab === 'register' && (
-            <div>
-              <input
-                {...register('username', {
-                  required: 'El nombre de usuario es requerido',
-                  minLength: {
-                    value: 3,
-                    message: 'Mínimo 3 caracteres'
-                  },
-                  maxLength: {
-                    value: 30,
-                    message: 'Máximo 30 caracteres'
-                  },
-                  pattern: {
-                    value: /^[a-zA-Z0-9]+$/,
-                    message: 'Solo letras y números'
-                  }
-                })}
-                type="text"
-                placeholder="Nombre de usuario"
-                className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-              />
-              {errors.username && (
-                <p className="text-red-400 text-sm mt-1">{errors.username.message}</p>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'register' && (
-            <div>
-              <input
-                {...register('displayName', {
-                  minLength: {
-                    value: 2,
-                    message: 'Mínimo 2 caracteres'
-                  },
-                  maxLength: {
-                    value: 100,
-                    message: 'Máximo 100 caracteres'
-                  }
-                })}
-                type="text"
-                placeholder="Nombre para mostrar (opcional)"
-                className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-              />
-              {errors.displayName && (
-                <p className="text-red-400 text-sm mt-1">{errors.displayName.message}</p>
-              )}
-            </div>
-          )}
-          
-          <div>
-            <input
-              {...register('email', {
-                required: 'El email es requerido',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Email inválido'
-                }
-              })}
-              type="email"
-              placeholder="Email"
-              className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-            />
-            {errors.email && (
-              <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
-            )}
-          </div>
-          
-          <div className="relative">
-            <input
-              {...register('password', {
-                required: 'La contraseña es requerida',
-                minLength: {
-                  value: 6,
-                  message: 'Mínimo 6 caracteres'
-                },
-                ...(activeTab === 'register' && {
-                  pattern: {
-                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                    message: 'Debe contener mayúscula, minúscula y número'
-                  }
-                })
-              })}
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Contraseña"
-              className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-            {errors.password && (
-              <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>
-            )}
-          </div>
-
-          {activeTab === 'register' && (
-            <div className="relative">
-              <input
-                {...register('confirmPassword', {
-                  required: 'Confirma tu contraseña',
-                  validate: value => value === password || 'Las contraseñas no coinciden'
-                })}
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirmar contraseña"
-                className="w-full bg-black/50 border border-purple-500/30 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-              >
-                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-              {errors.confirmPassword && (
-                <p className="text-red-400 text-sm mt-1">{errors.confirmPassword.message}</p>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'register' && (
-            <label className="flex items-center gap-2 text-sm text-purple-300">
-              <input 
-                {...register('isCreator')}
-                type="checkbox" 
-                className="rounded border-purple-500" 
-              />
-              Quiero ser creador de contenido
-            </label>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
-          >
-            {isLoading && <Loader2 className="animate-spin" size={20} />}
-            {isLoading 
-              ? (activeTab === 'login' ? 'Entrando...' : 'Creando cuenta...') 
-              : (activeTab === 'login' ? 'Entrar' : 'Crear Cuenta')
-            }
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-gray-400 text-sm">
-            {activeTab === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
-            <button 
-              onClick={() => switchTab(activeTab === 'login' ? 'register' : 'login')}
-              className="text-purple-400 hover:text-purple-300 ml-1 font-medium"
-            >
-              {activeTab === 'login' ? 'Regístrate' : 'Inicia sesión'}
-            </button>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
-  const UserMenu = () => (
-    <div className="flex items-center gap-4">
-      <div className="flex items-center gap-2 text-white">
-        <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-          <User size={16} />
-        </div>
-        <span className="text-sm">Hola, {user?.displayName || user?.username}</span>
-      </div>
-      <button
-        onClick={logout}
-        className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors"
-      >
-        <LogOut size={16} />
-        <span className="text-sm">Salir</span>
-      </button>
-    </div>
-  );
+  const featuredCreators = [
+    {
+      id: 1,
+      name: 'Bella Storm',
+      username: '@bella_storm',
+      avatar: '/api/placeholder/80/80',
+      banner: '/api/placeholder/300/200',
+      followers: '125K',
+      isVerified: true,
+      type: 'Premium Model',
+      preview: '/api/placeholder/200/300'
+    },
+    {
+      id: 2,
+      name: 'Sarah Fitness',
+      username: '@sarah_fit',
+      avatar: '/api/placeholder/80/80',
+      banner: '/api/placeholder/300/200',
+      followers: '89K',
+      isVerified: true,
+      type: 'Fitness Coach',
+      preview: '/api/placeholder/200/300'
+    },
+    {
+      id: 3,
+      name: 'Luna Art',
+      username: '@luna_creates',
+      avatar: '/api/placeholder/80/80',
+      banner: '/api/placeholder/300/200',
+      followers: '67K',
+      isVerified: false,
+      type: 'Digital Artist',
+      preview: '/api/placeholder/200/300'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-800">
@@ -385,163 +118,149 @@ const Home = () => {
             </nav>
 
             <div className="flex items-center gap-3">
-              {isAuthenticated ? (
-                <UserMenu />
-              ) : (
-                <>
-                  <button 
-                    onClick={() => {
-                      setActiveTab('login');
-                      setShowLoginModal(true);
-                    }}
-                    className="text-purple-300 hover:text-white transition-colors"
-                  >
-                    Iniciar Sesión
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setActiveTab('register');
-                      setShowLoginModal(true);
-                    }}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-semibold transition-all"
-                  >
-                    Unirse
-                  </button>
-                </>
-              )}
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-semibold transition-all"
+              >
+                Iniciar Sesión
+              </button>
             </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-5xl md:text-7xl font-bold text-white mb-6">
-            {isAuthenticated ? (
-              <>
-                Bienvenido de vuelta,
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent block">
-                  {user?.displayName || user?.username}
-                </span>
-              </>
-            ) : (
-              <>
-                Explora tus
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent block">
-                  Fantasías Más Oscuras
-                </span>
-              </>
-            )}
-          </h2>
-          
-          <p className="text-xl text-purple-200 mb-8 max-w-3xl mx-auto">
-            {isAuthenticated ? 
-              'Descubre nuevo contenido exclusivo de tus creadores favoritos' :
-              'La plataforma definitiva para contenido extremo y fetiches sin límites. Únete a una comunidad que abraza lo prohibido.'
-            }
-          </p>
+      <section className="relative py-20 px-4 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-72 h-72 bg-pink-500 rounded-full blur-3xl"></div>
+        </div>
 
-          {!isAuthenticated && (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl md:text-7xl font-bold text-white mb-6">
+              Contenido
+              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                {' '}Exclusivo
+              </span>
+            </h2>
+            <p className="text-xl text-purple-200 mb-8 max-w-2xl mx-auto">
+              Descubre a los mejores creadores de contenido premium y accede a material exclusivo
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => {
-                  setActiveTab('register');
-                  setShowLoginModal(true);
-                }}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all transform hover:scale-105"
+                onClick={() => setShowLoginModal(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all"
               >
                 Explorar Ahora
               </button>
-              <button 
-                onClick={() => {
-                  setActiveTab('register');
-                  setShowLoginModal(true);
-                }}
-                className="border border-purple-500 text-purple-300 hover:bg-purple-600 hover:text-white px-8 py-4 rounded-lg font-bold text-lg transition-all"
-              >
-                Ser Creador
+              <button className="border border-purple-400 text-purple-300 hover:bg-purple-900/50 px-8 py-4 rounded-lg font-semibold text-lg transition-all">
+                Conoce Más
               </button>
             </div>
-          )}
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-            <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/30">
-              <Lock className="text-purple-400 mx-auto mb-4" size={48} />
-              <h3 className="text-xl font-bold text-white mb-2">Contenido Exclusivo</h3>
-              <p className="text-purple-200">Acceso a fetiches y contenido que no encontrarás en ningún otro lugar</p>
-            </div>
-            
-            <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/30">
-              <Crown className="text-purple-400 mx-auto mb-4" size={48} />
-              <h3 className="text-xl font-bold text-white mb-2">Experiencia Premium</h3>
-              <p className="text-purple-200">Interacción directa con creadores y contenido personalizado</p>
-            </div>
-            
-            <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/30">
-              <Shield className="text-purple-400 mx-auto mb-4" size={48} />
-              <h3 className="text-xl font-bold text-white mb-2">100% Anónimo</h3>
-              <p className="text-purple-200">Tu privacidad es nuestra prioridad. Navega sin preocupaciones</p>
-            </div>
+          {/* Featured preview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="relative group">
+                <div className="bg-black/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30 hover:border-purple-400/50 transition-all">
+                  <div className="aspect-square bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg mb-4 flex items-center justify-center">
+                    <Camera className="text-white opacity-50" size={48} />
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-purple-600 rounded-full"></div>
+                    <span className="text-white font-medium">Creator {i}</span>
+                    <Star className="text-purple-400" size={16} />
+                  </div>
+                  <p className="text-gray-300 text-sm">Contenido exclusivo disponible</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Featured Creators */}
-      <section className="py-20 px-4 bg-black/20">
+      <section className="py-20 px-4 bg-black/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">Creadores Destacados</h2>
-            <p className="text-purple-200 text-lg">Descubre a los artistas más extremos de la plataforma</p>
+            <h3 className="text-4xl font-bold text-white mb-4">Creadores Destacados</h3>
+            <p className="text-purple-200 text-lg">Los mejores creadores de contenido premium</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredCreators.map((creator) => (
-              <div key={creator.id} className="bg-black/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-purple-500/30 hover:border-purple-400/50 transition-all hover:transform hover:scale-105">
-                <div className="relative">
+            {featuredCreators.map(creator => (
+              <div key={creator.id} className="bg-black/50 backdrop-blur-sm rounded-xl overflow-hidden border border-purple-500/30 hover:border-purple-400/50 transition-all group">
+                {/* Banner */}
+                <div className="relative h-32 bg-gradient-to-r from-purple-600 to-pink-600">
                   <img 
-                    src={creator.preview} 
-                    alt={creator.name}
-                    className="w-full h-64 object-cover"
+                    src={creator.banner} 
+                    alt="Banner"
+                    className="w-full h-full object-cover opacity-80"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                  
-                  <div className="absolute top-4 right-4">
-                    {creator.isOnline && (
-                      <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                        <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
-                        En línea
-                      </div>
-                    )}
+                  <div className="absolute inset-0 bg-black/20"></div>
+                </div>
+
+                {/* Profile */}
+                <div className="relative px-6 pb-6">
+                  <div className="flex items-start justify-between -mt-8 mb-4">
+                    <div className="relative">
+                      <img 
+                        src={creator.avatar} 
+                        alt={creator.name}
+                        className="w-16 h-16 rounded-full border-4 border-purple-500 bg-black"
+                      />
+                      {creator.isVerified && (
+                        <Star className="absolute -top-1 -right-1 w-5 h-5 text-blue-400 fill-current" />
+                      )}
+                    </div>
+                    <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg font-medium transition-all">
+                      Seguir
+                    </button>
                   </div>
 
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <img 
-                        src={creator.image} 
-                        alt={creator.name}
-                        className="w-12 h-12 rounded-full border-2 border-purple-400"
-                      />
-                      <div>
-                        <h3 className="text-white font-bold">{creator.name}</h3>
-                        <p className="text-purple-300 text-sm">{creator.subscribers} seguidores</p>
+                  <div className="mb-4">
+                    <h4 className="text-white font-bold text-lg">{creator.name}</h4>
+                    <p className="text-purple-300">{creator.username}</p>
+                    <p className="text-gray-400 text-sm">{creator.type}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <div className="text-white font-bold">{creator.followers}</div>
+                        <div className="text-gray-400 text-xs">Seguidores</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Crown className="text-yellow-400" size={16} />
+                      <span className="text-yellow-400 text-sm">Premium</span>
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="relative rounded-lg overflow-hidden mb-4">
+                    <img 
+                      src={creator.preview} 
+                      alt="Preview"
+                      className="w-full h-40 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="text-center">
+                        <Lock className="w-8 h-8 text-white mx-auto mb-2" />
+                        <p className="text-white text-sm">Vista previa</p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="p-4">
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
                     <button 
-                      onClick={() => {
-                        if (!isAuthenticated) {
-                          setActiveTab('register');
-                          setShowLoginModal(true);
-                        }
-                      }}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-2 rounded-lg font-semibold transition-all"
+                      onClick={() => setShowLoginModal(true)}
+                      className="flex-1 bg-purple-900/50 text-purple-300 hover:bg-purple-800 py-2 rounded-lg font-medium transition-all"
                     >
-                      {isAuthenticated ? 'Suscribirse' : 'Registrarse'}
+                      {creator.isVerified ? 'Suscribirse' : 'Registrarse'}
                     </button>
                     <button className="bg-purple-900/50 text-purple-300 hover:bg-purple-800 p-2 rounded-lg transition-all">
                       <Heart size={20} />
@@ -581,79 +300,135 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      {!isAuthenticated && (
-        <section className="py-20 px-4 bg-gradient-to-r from-purple-900 to-pink-900">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold text-white mb-6">
-              ¿Listo para Descubrir lo Prohibido?
-            </h2>
-            <p className="text-xl text-purple-100 mb-8">
-              Únete a miles de usuarios que ya exploran sus fantasías más oscuras
-            </p>
-            <button 
-              onClick={() => {
-                setActiveTab('register');
-                setShowLoginModal(true);
-              }}
-              className="bg-black hover:bg-gray-900 text-white px-12 py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 border border-purple-400"
-            >
-              Comenzar Ahora
-            </button>
+      {/* Features Section */}
+      <section className="py-20 px-4 bg-black/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h3 className="text-4xl font-bold text-white mb-4">¿Por Qué PXTards?</h3>
+            <p className="text-purple-200 text-lg">La mejor experiencia para creadores y usuarios</p>
           </div>
-        </section>
-      )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="text-white" size={24} />
+              </div>
+              <h4 className="text-white font-bold text-xl mb-2">Seguridad Total</h4>
+              <p className="text-gray-300">Tu privacidad y seguridad son nuestra prioridad número uno</p>
+            </div>
+
+            <div className="text-center">
+              <div className="bg-pink-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown className="text-white" size={24} />
+              </div>
+              <h4 className="text-white font-bold text-xl mb-2">Contenido Premium</h4>
+              <p className="text-gray-300">Accede a contenido exclusivo de los mejores creadores</p>
+            </div>
+
+            <div className="text-center">
+              <div className="bg-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="text-white" size={24} />
+              </div>
+              <h4 className="text-white font-bold text-xl mb-2">Comunidad</h4>
+              <p className="text-gray-300">Conecta con creadores y otros usuarios en nuestra comunidad</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 bg-gradient-to-r from-purple-900 to-pink-900">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            ¿Listo para Descubrir lo Prohibido?
+          </h2>
+          <p className="text-xl text-purple-100 mb-8">
+            Únete a miles de usuarios que ya disfrutan del mejor contenido premium
+          </p>
+          <button 
+            onClick={() => setShowLoginModal(true)}
+            className="bg-white text-purple-900 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-all"
+          >
+            Comenzar Ahora
+          </button>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="bg-black py-12 px-4 border-t border-purple-500/30">
+      <footer className="bg-black py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-                PXTards
-              </h3>
-              <p className="text-purple-300 text-sm">
-                La plataforma definitiva para contenido extremo y sin límites.
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  PXTards
+                </h3>
+                <Flame className="text-purple-400" size={20} />
+              </div>
+              <p className="text-gray-400">
+                La plataforma líder para contenido premium y creadores exclusivos.
               </p>
             </div>
-            
+
             <div>
-              <h4 className="text-white font-semibold mb-3">Plataforma</h4>
-              <ul className="space-y-2 text-purple-300 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Explorar</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Creadores</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Premium</a></li>
+              <h4 className="text-white font-semibold mb-4">Plataforma</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">Explorar</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">Creadores</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">Premium</a></li>
               </ul>
             </div>
-            
+
             <div>
-              <h4 className="text-white font-semibold mb-3">Soporte</h4>
-              <ul className="space-y-2 text-purple-300 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Centro de Ayuda</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contacto</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Reportar</a></li>
+              <h4 className="text-white font-semibold mb-4">Soporte</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">Centro de Ayuda</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">Contacto</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">FAQ</a></li>
               </ul>
             </div>
-            
+
             <div>
-              <h4 className="text-white font-semibold mb-3">Legal</h4>
-              <ul className="space-y-2 text-purple-300 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Términos</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacidad</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookies</a></li>
+              <h4 className="text-white font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">Privacidad</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">Términos</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400">Cookies</a></li>
               </ul>
             </div>
           </div>
-          
-          <div className="border-t border-purple-500/30 mt-8 pt-8 text-center">
-            <p className="text-purple-400 text-sm">
-              © 2024 PXTards. Solo para mayores de 18 años.
+
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center">
+            <p className="text-gray-400">
+              © 2025 PXTards. Todos los derechos reservados.
             </p>
           </div>
         </div>
       </footer>
 
-      {showLoginModal && <LoginModal />}
+      {/* Modal de Login */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-black/90 backdrop-blur-md rounded-2xl p-8 w-full max-w-md border border-purple-500/30">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                {activeTab === 'login' ? 'Iniciar Sesión' : 'Registro'}
+              </h2>
+              <button 
+                onClick={() => setShowLoginModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <AuthForm 
+              onClose={() => setShowLoginModal(false)}
+              initialTab={activeTab}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
