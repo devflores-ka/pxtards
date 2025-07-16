@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader, RefreshCw, Plus } from 'lucide-react';
 import Post from './Post';
 import CreatePostModal from './CreatePostModal';
-import contentService from '../services/contentService';
+import contentService from '../../services/contentService';
 
 const FeedSection = ({ user }) => {
   const [posts, setPosts] = useState([]);

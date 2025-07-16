@@ -33,12 +33,33 @@ class ContentService {
     try {
       console.log('📝 Creating post:', postData);
       
-      const response = await api.post(CONTENT_ENDPOINTS.POSTS, postData);
+      // Transformar los datos al formato que espera el backend
+      const backendData = {
+        title: postData.title,
+        description: postData.description,
+        content_type: postData.contentType,
+        is_premium: postData.isPremium,
+        price: postData.price
+      };
+      
+      // Solo agregar campos URL si tienen valores válidos
+      if (postData.mediaUrl && postData.mediaUrl.trim() !== '') {
+        backendData.media_url = postData.mediaUrl;
+      }
+      
+      if (postData.thumbnailUrl && postData.thumbnailUrl.trim() !== '') {
+        backendData.thumbnail_url = postData.thumbnailUrl;
+      }
+      
+      console.log('📝 Sending to backend:', backendData);
+      
+      const response = await api.post(CONTENT_ENDPOINTS.POSTS, backendData);
       
       console.log('✅ Post created:', response.data);
       return response.data;
     } catch (error) {
       console.error('❌ Error creating post:', error);
+      console.error('❌ Error details:', error.response?.data);
       throw new Error(
         error.response?.data?.details?.join(', ') ||
         error.response?.data?.message || 

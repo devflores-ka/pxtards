@@ -18,14 +18,14 @@ const contentLimiter = rateLimit({
 
 // Esquemas de validación
 const createPostSchema = Joi.object({
-  title: Joi.string().max(255).optional(),
+  title: Joi.string().max(255).optional().allow(''),
   description: Joi.string().max(2000).required(),
   content_type: Joi.string().valid('text', 'image', 'video').default('text'),
   media_url: Joi.string().uri().optional(),
   thumbnail_url: Joi.string().uri().optional(),
   is_premium: Joi.boolean().default(false),
   price: Joi.number().min(0).max(999.99).default(0)
-});
+}).options({ stripUnknown: true }); // Esto elimina campos desconocidos
 
 // @route   GET /api/content/feed
 // @desc    Obtener feed de posts
@@ -149,6 +149,11 @@ router.post('/posts', authMiddleware, contentLimiter, async (req, res) => {
       price
     } = value;
 
+    // Limpiar campos URL vacíos
+    const cleanMediaUrl = media_url && media_url.trim() !== '' ? media_url : null;
+    const cleanThumbnailUrl = thumbnail_url && thumbnail_url.trim() !== '' ? thumbnail_url : null;
+    const cleanTitle = title && title.trim() !== '' ? title : null;
+
     // Crear post en la base de datos
     const result = await pool.query(`
       INSERT INTO content (
@@ -157,8 +162,8 @@ router.post('/posts', authMiddleware, contentLimiter, async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `, [
-      req.user.id, title, description, content_type,
-      media_url, thumbnail_url, is_premium, price
+      req.user.id, cleanTitle, description, content_type,
+      cleanMediaUrl, cleanThumbnailUrl, is_premium, price
     ]);
 
     const post = result.rows[0];

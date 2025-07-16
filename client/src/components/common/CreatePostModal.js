@@ -1,7 +1,7 @@
 // client/src/components/CreatePostModal.js
 import React, { useState } from 'react';
 import { X, Image, Video, DollarSign, Lock } from 'lucide-react';
-import contentService from '../services/contentService';
+import contentService from '../../services/contentService';
 
 const CreatePostModal = ({ isOpen, onClose, onPostCreated }) => {
   const [formData, setFormData] = useState({

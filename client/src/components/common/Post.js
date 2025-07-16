@@ -1,7 +1,7 @@
 // client/src/components/Post.js
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Share, Eye, Lock, Verified, MoreHorizontal } from 'lucide-react';
-import contentService from '../services/contentService';
+import contentService from '../../services/contentService';
 
 const Post = ({ post, onLikeUpdate, currentUser }) => {
   const [isLiked, setIsLiked] = useState(post.userLiked);
