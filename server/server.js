@@ -54,7 +54,8 @@ app.get('/api/health', (req, res) => {
 
 // Rutas principales
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/content', require('./routes/content')); // ⭐ Nueva ruta
+app.use('/api/content', require('./routes/content'));
+app.use('/api/comments', require('./routes/comments')); // ⭐ Nueva ruta de comentarios
 
 // Rutas futuras (comentadas para implementar después)
 // app.use('/api/users', require('./routes/users'));
@@ -121,4 +122,5 @@ app.listen(PORT, () => {
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🔐 Auth routes: http://localhost:${PORT}/api/auth`);
   console.log(`📝 Content routes: http://localhost:${PORT}/api/content`);
+  console.log(`💬 Comments routes: http://localhost:${PORT}/api/comments`);
 });

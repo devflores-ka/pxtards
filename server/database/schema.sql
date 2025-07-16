@@ -186,3 +186,52 @@ CREATE TRIGGER update_content_updated_at
     BEFORE UPDATE ON content 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Actualización de base de datos para sistema de comentarios
+-- Ejecutar en PostgreSQL
+
+-- Tabla de likes para comentarios
+CREATE TABLE IF NOT EXISTS comment_likes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(comment_id, user_id) -- Un usuario solo puede dar like una vez por comentario
+);
+
+-- Índices para mejorar performance de comentarios
+CREATE INDEX IF NOT EXISTS idx_comment_likes_comment_id ON comment_likes(comment_id);
+CREATE INDEX IF NOT EXISTS idx_comment_likes_user_id ON comment_likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_content_id ON comments(content_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments(created_at DESC);
+
+-- Actualizar tabla de comentarios si no tiene likes_count
+ALTER TABLE comments 
+ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0;
+
+-- Actualización de base de datos para sistema de comentarios
+-- Ejecutar en PostgreSQL
+
+-- Primero, agregar las columnas que faltan a la tabla comments
+ALTER TABLE comments 
+ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
+ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0;
+
+-- Tabla de likes para comentarios
+CREATE TABLE IF NOT EXISTS comment_likes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(comment_id, user_id) -- Un usuario solo puede dar like una vez por comentario
+);
+
+-- Índices para mejorar performance de comentarios
+CREATE INDEX IF NOT EXISTS idx_comment_likes_comment_id ON comment_likes(comment_id);
+CREATE INDEX IF NOT EXISTS idx_comment_likes_user_id ON comment_likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_content_id ON comments(content_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments(created_at DESC);

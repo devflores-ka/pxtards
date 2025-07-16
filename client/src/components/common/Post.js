@@ -1,12 +1,15 @@
 // client/src/components/Post.js
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Share, Eye, Lock, Verified, MoreHorizontal } from 'lucide-react';
-import contentService from '../../services/contentService';
+import contentService from '../../services/commentsService';
+import Comments from './Comments';
 
 const Post = ({ post, onLikeUpdate, currentUser }) => {
   const [isLiked, setIsLiked] = useState(post.userLiked);
   const [likesCount, setLikesCount] = useState(post.likesCount);
+  const [commentsCount, setCommentsCount] = useState(post.commentsCount);
   const [isLiking, setIsLiking] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const handleLike = async () => {
     if (isLiking) return;
@@ -28,6 +31,10 @@ const Post = ({ post, onLikeUpdate, currentUser }) => {
     } finally {
       setIsLiking(false);
     }
+  };
+
+  const handleCommentsCountChange = (newCount) => {
+    setCommentsCount(newCount);
   };
 
   const formatNumber = (num) => {
@@ -179,9 +186,16 @@ const Post = ({ post, onLikeUpdate, currentUser }) => {
             </button>
 
             {/* Comments */}
-            <button className="flex items-center gap-2 text-gray-400 hover:text-blue-500 transition-colors">
+            <button 
+              onClick={() => setShowComments(!showComments)}
+              className={`flex items-center gap-2 transition-colors ${
+                showComments 
+                  ? 'text-blue-500' 
+                  : 'text-gray-400 hover:text-blue-500'
+              }`}
+            >
               <MessageCircle size={20} />
-              <span className="text-sm">{formatNumber(post.commentsCount)}</span>
+              <span className="text-sm">{formatNumber(commentsCount)}</span>
             </button>
 
             {/* Share */}
@@ -197,6 +211,16 @@ const Post = ({ post, onLikeUpdate, currentUser }) => {
           </div>
         </div>
       </div>
+
+      {/* Comments Section */}
+      <Comments 
+        postId={post.id}
+        currentUser={currentUser}
+        initialCommentsCount={commentsCount}
+        onCommentsCountChange={handleCommentsCountChange}
+        showComments={showComments}
+        onToggleComments={() => setShowComments(!showComments)}
+      />
     </div>
   );
 };
