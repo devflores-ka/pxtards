@@ -24,7 +24,11 @@ import {
   Crown,
   Lock,
   Eye,
-  Gift
+  Gift,
+  Zap, // Nuevo icono para Date
+  X,   // Para el botón de "pass"
+  MapPin, // Para ubicación
+  Info    // Para información adicional
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -34,6 +38,9 @@ const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
   const [showPostModal, setShowPostModal] = useState(false);
+  // Nuevo estado para la funcionalidad de Date
+  const [currentDateProfile, setCurrentDateProfile] = useState(null);
+  const [dateProfiles, setDateProfiles] = useState([]);
 
   // Mock data para posts
   const mockPosts = [
@@ -106,8 +113,70 @@ const Dashboard = () => {
     }
   ];
 
+  // Mock data para perfiles de Date
+  const mockDateProfiles = [
+    {
+      id: 1,
+      name: 'Isabella',
+      age: 24,
+      profession: 'Modelo & Content Creator',
+      location: 'Madrid, España',
+      bio: 'Amante del arte y la fotografía. Creando contenido único para mis fans. 📸✨',
+      images: [
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600'
+      ],
+      isCreator: true,
+      tier: 'premium',
+      isVerified: true,
+      interests: ['Fotografía', 'Moda', 'Viajes', 'Arte'],
+      distance: '2 km'
+    },
+    {
+      id: 2,
+      name: 'Sophia',
+      age: 26,
+      profession: 'Fitness Instructor',
+      location: 'Barcelona, España',
+      bio: 'Entrenadora personal certificada. Ayudo a crear la mejor versión de ti mismo 💪',
+      images: [
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600'
+      ],
+      isCreator: true,
+      tier: 'gold',
+      isVerified: true,
+      interests: ['Fitness', 'Nutrición', 'Bienestar', 'Yoga'],
+      distance: '5 km'
+    },
+    {
+      id: 3,
+      name: 'Luna',
+      age: 22,
+      profession: 'Artista Digital',
+      location: 'Valencia, España',
+      bio: 'Creando mundos digitales y experiencias únicas. Arte que conecta almas 🎨',
+      images: [
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600',
+        '/api/placeholder/400/600'
+      ],
+      isCreator: true,
+      tier: 'standard',
+      isVerified: false,
+      interests: ['Arte Digital', 'Gaming', 'Anime', 'Música'],
+      distance: '8 km'
+    }
+  ];
+
   useEffect(() => {
     setPosts(mockPosts);
+    setDateProfiles(mockDateProfiles);
+    if (mockDateProfiles.length > 0) {
+      setCurrentDateProfile(mockDateProfiles[0]);
+    }
   }, []);
 
   const handleLike = (postId) => {
@@ -126,35 +195,55 @@ const Dashboard = () => {
     ));
   };
 
+  // Funciones para la funcionalidad de Date
+  const handleDateLike = () => {
+    if (currentDateProfile) {
+      // Aquí iría la lógica para hacer "like" en el perfil
+      console.log('Like a:', currentDateProfile.name);
+      nextProfile();
+    }
+  };
+
+  const handleDatePass = () => {
+    if (currentDateProfile) {
+      // Aquí iría la lógica para hacer "pass" en el perfil
+      console.log('Pass a:', currentDateProfile.name);
+      nextProfile();
+    }
+  };
+
+  const nextProfile = () => {
+    const currentIndex = dateProfiles.findIndex(profile => profile.id === currentDateProfile?.id);
+    const nextIndex = (currentIndex + 1) % dateProfiles.length;
+    setCurrentDateProfile(dateProfiles[nextIndex]);
+  };
+
   const PostCard = ({ post }) => (
-    <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 mb-4 border border-purple-500/20">
+    <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 mb-6 border border-purple-500/20 hover:border-purple-400/40 transition-all">
       {/* Header del post */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <img 
-              src={post.user.avatar} 
-              alt={post.user.displayName}
-              className="w-12 h-12 rounded-full border-2 border-purple-400"
-            />
-            {post.user.tier === 'premium' && (
-              <Crown className="absolute -top-1 -right-1 w-4 h-4 text-yellow-400" />
-            )}
+          <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+            <User size={16} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-white">{post.user.displayName}</h3>
-              {post.user.isVerified && (
-                <Star className="w-4 h-4 text-blue-400 fill-current" />
-              )}
+              <h3 className="text-white font-semibold">{post.user.displayName}</h3>
+              {post.user.isVerified && <Star className="w-4 h-4 text-yellow-400 fill-current" />}
               {post.user.isCreator && (
-                <Crown className="w-4 h-4 text-purple-400" />
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  post.user.tier === 'premium' ? 'bg-yellow-600 text-black' :
+                  post.user.tier === 'gold' ? 'bg-yellow-500 text-black' :
+                  'bg-purple-600 text-white'
+                }`}>
+                  {post.user.tier.toUpperCase()}
+                </span>
               )}
             </div>
             <p className="text-gray-400 text-sm">@{post.user.username} • {post.timestamp}</p>
           </div>
         </div>
-        <button className="text-gray-400 hover:text-white">
+        <button className="text-gray-400 hover:text-white transition-colors">
           <MoreHorizontal size={20} />
         </button>
       </div>
@@ -162,67 +251,58 @@ const Dashboard = () => {
       {/* Contenido del post */}
       <p className="text-white mb-4">{post.content}</p>
 
-      {/* Media del post */}
+      {/* Media */}
       {post.media && post.media.length > 0 && (
-        <div className="mb-4 relative">
-          {post.isPremium && (
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
-              <div className="text-center">
-                <Lock className="w-12 h-12 text-purple-400 mx-auto mb-2" />
-                <p className="text-white font-semibold mb-1">Contenido Premium</p>
-                <p className="text-gray-300 text-sm mb-4">${post.price}</p>
-                <button className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-2 rounded-full text-white font-medium hover:from-purple-700 hover:to-pink-700 transition-all">
-                  Desbloquear
-                </button>
+        <div className="mb-4 rounded-lg overflow-hidden">
+          {post.isPremium ? (
+            <div className="relative">
+              <div className="bg-black/80 backdrop-blur-sm p-8 rounded-lg border border-yellow-500/30 text-center">
+                <Lock className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
+                <h4 className="text-white font-semibold mb-2">Contenido Premium</h4>
+                <p className="text-gray-300 text-sm mb-4">
+                  Suscríbete para acceder a este contenido exclusivo
+                </p>
+                <div className="flex items-center justify-center gap-2 text-yellow-400 font-semibold">
+                  <DollarSign size={16} />
+                  <span>${post.price}</span>
+                </div>
               </div>
             </div>
+          ) : (
+            <img 
+              src={post.media[0].url} 
+              alt="Post content" 
+              className="w-full h-64 object-cover rounded-lg"
+            />
           )}
-          {post.media.map((item, index) => (
-            <div key={index} className="rounded-xl overflow-hidden">
-              {item.type === 'image' ? (
-                <img 
-                  src={item.url} 
-                  alt="Post content"
-                  className="w-full h-64 object-cover"
-                />
-              ) : (
-                <video 
-                  src={item.url}
-                  poster={item.thumbnail}
-                  className="w-full h-64 object-cover"
-                  controls={!post.isPremium}
-                />
-              )}
-            </div>
-          ))}
         </div>
       )}
 
-      {/* Acciones del post */}
+      {/* Acciones */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-6">
           <button 
             onClick={() => handleLike(post.id)}
             className={`flex items-center gap-2 transition-colors ${
-              post.isLiked ? 'text-red-400' : 'text-gray-400 hover:text-red-400'
+              post.isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'
             }`}
           >
             <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
             <span className="text-sm">{post.likes}</span>
           </button>
           
-          <button className="flex items-center gap-2 text-gray-400 hover:text-purple-400 transition-colors">
+          <button className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors">
             <MessageCircle className="w-5 h-5" />
             <span className="text-sm">{post.comments}</span>
           </button>
           
-          <button className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors">
+          <button className="flex items-center gap-2 text-gray-400 hover:text-green-400 transition-colors">
             <Share className="w-5 h-5" />
             <span className="text-sm">{post.shares}</span>
           </button>
         </div>
-
-        <div className="flex items-center gap-2">
+        
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => handleBookmark(post.id)}
             className={`transition-colors ${
@@ -242,6 +322,94 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  // Nuevo componente para la funcionalidad de Date
+  const DateCard = ({ profile }) => {
+    if (!profile) return null;
+
+    return (
+      <div className="max-w-md mx-auto bg-black/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-purple-500/20 shadow-2xl">
+        {/* Imagen principal */}
+        <div className="relative h-96 overflow-hidden">
+          <img 
+            src={profile.images[0]} 
+            alt={profile.name}
+            className="w-full h-full object-cover"
+          />
+          
+          {/* Overlay con información básica */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-white text-2xl font-bold">{profile.name}</h2>
+              <span className="text-white text-xl">{profile.age}</span>
+              {profile.isVerified && <Star className="w-5 h-5 text-yellow-400 fill-current" />}
+            </div>
+            
+            <p className="text-gray-200 text-sm mb-1">{profile.profession}</p>
+            
+            <div className="flex items-center gap-1 text-gray-300 text-sm">
+              <MapPin size={14} />
+              <span>{profile.location} • {profile.distance}</span>
+            </div>
+          </div>
+
+          {/* Badge de creator */}
+          {profile.isCreator && (
+            <div className="absolute top-4 right-4">
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                profile.tier === 'premium' ? 'bg-yellow-600 text-black' :
+                profile.tier === 'gold' ? 'bg-yellow-500 text-black' :
+                'bg-purple-600 text-white'
+              }`}>
+                CREATOR
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Información detallada */}
+        <div className="p-6">
+          <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+            {profile.bio}
+          </p>
+
+          {/* Intereses */}
+          <div className="mb-6">
+            <h4 className="text-white text-sm font-semibold mb-2">Intereses</h4>
+            <div className="flex flex-wrap gap-2">
+              {profile.interests.map((interest, index) => (
+                <span 
+                  key={index}
+                  className="px-3 py-1 bg-purple-600/30 text-purple-300 text-xs rounded-full border border-purple-500/30"
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Botones de acción */}
+          <div className="flex gap-4">
+            <button 
+              onClick={handleDatePass}
+              className="flex-1 bg-gray-600/50 hover:bg-gray-600/70 text-white py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+            >
+              <X size={20} />
+              Pass
+            </button>
+            
+            <button 
+              onClick={handleDateLike}
+              className="flex-1 bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+            >
+              <Heart size={20} />
+              Like
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const Sidebar = () => (
     <div className="w-64 bg-black/40 backdrop-blur-sm h-screen sticky top-0 border-r border-purple-500/20">
@@ -278,6 +446,22 @@ const Dashboard = () => {
           >
             <TrendingUp size={20} />
             <span>Tendencias</span>
+          </button>
+
+          {/* NUEVA SECCIÓN: Date */}
+          <button 
+            onClick={() => setActiveTab('date')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'date' 
+                ? 'bg-gradient-to-r from-pink-600 to-red-600 text-white' 
+                : 'text-gray-300 hover:bg-purple-900/50 hover:text-white'
+            }`}
+          >
+            <Zap size={20} />
+            <span>Date</span>
+            <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+              ✨
+            </span>
           </button>
           
           <button 
@@ -382,31 +566,24 @@ const Dashboard = () => {
           <input 
             type="text" 
             placeholder="Buscar creadores..."
-            className="w-full bg-black/50 border border-purple-500/30 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+            className="w-full bg-black/50 border border-purple-500/30 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-400"
           />
         </div>
 
-        {/* Trending Creators */}
+        {/* Creadores sugeridos */}
         <div className="mb-6">
           <h3 className="text-white font-semibold mb-4">Creadores Populares</h3>
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center justify-between p-3 bg-purple-900/30 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <img 
-                      src={`/api/placeholder/40/40`}
-                      alt="Creator"
-                      className="w-10 h-10 rounded-full border-2 border-purple-400"
-                    />
-                    <Crown className="absolute -top-1 -right-1 w-3 h-3 text-yellow-400" />
-                  </div>
-                  <div>
-                    <p className="text-white font-medium text-sm">Creator {i}</p>
-                    <p className="text-gray-400 text-xs">@creator{i}</p>
-                  </div>
+            {[1, 2, 3].map((_, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 bg-black/30 rounded-lg hover:bg-black/50 transition-colors cursor-pointer">
+                <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+                  <User size={16} />
                 </div>
-                <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-medium hover:from-purple-700 hover:to-pink-700 transition-all">
+                <div className="flex-1">
+                  <p className="text-white text-sm font-medium">@creator{index + 1}</p>
+                  <p className="text-gray-400 text-xs">1.2k seguidores</p>
+                </div>
+                <button className="text-purple-400 text-sm hover:text-purple-300 transition-colors">
                   Seguir
                 </button>
               </div>
@@ -414,18 +591,18 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Premium Upgrade */}
-        <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-xl p-6 border border-purple-500/30">
-          <div className="text-center">
-            <Crown className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
-            <h3 className="text-white font-bold mb-2">Hazte Premium</h3>
-            <p className="text-gray-300 text-sm mb-4">
-              Accede a contenido exclusivo y funciones premium
-            </p>
-            <button className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black py-2 rounded-lg font-semibold hover:from-yellow-700 hover:to-yellow-600 transition-all">
-              Mejorar Cuenta
-            </button>
+        {/* Promoción Premium */}
+        <div className="bg-gradient-to-br from-yellow-600/20 to-yellow-800/20 border border-yellow-500/30 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Crown className="text-yellow-400" size={20} />
+            <h3 className="text-white font-semibold">¡Hazte Premium!</h3>
           </div>
+          <p className="text-gray-300 text-sm mb-4">
+            Accede a contenido exclusivo y funciones premium
+          </p>
+          <button className="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black py-2 rounded-lg font-semibold hover:from-yellow-700 hover:to-yellow-600 transition-all">
+            Mejorar Cuenta
+          </button>
         </div>
       </div>
     </div>
@@ -444,6 +621,7 @@ const Dashboard = () => {
             <h2 className="text-xl font-bold text-white">
               {activeTab === 'home' && 'Inicio'}
               {activeTab === 'trending' && 'Tendencias'}
+              {activeTab === 'date' && 'Date - Conecta con Creadores'}
               {activeTab === 'premium' && 'Premium'}
               {activeTab === 'messages' && 'Mensajes'}
               {activeTab === 'notifications' && 'Notificaciones'}
@@ -501,6 +679,47 @@ const Dashboard = () => {
               </div>
             )}
 
+            {/* NUEVA SECCIÓN: Date */}
+            {activeTab === 'date' && (
+              <div>
+                {/* Header informativo */}
+                <div className="bg-gradient-to-r from-pink-600/20 to-red-600/20 border border-pink-500/30 rounded-xl p-6 mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Zap className="text-pink-400" size={24} />
+                    <h3 className="text-white text-lg font-bold">Descubre Creadores</h3>
+                  </div>
+                  <p className="text-gray-300 text-sm mb-3">
+                    Conecta con creadores de contenido increíbles. Dale like para mostrar interés o pass para continuar.
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <Heart size={16} className="text-red-400" />
+                      <span>Like para conectar</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <X size={16} className="text-gray-400" />
+                      <span>Pass para continuar</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tarjeta de perfil principal */}
+                <div className="flex justify-center">
+                  <DateCard profile={currentDateProfile} />
+                </div>
+
+                {/* Controles adicionales */}
+                <div className="mt-6 flex justify-center gap-4">
+                  <button className="bg-black/40 hover:bg-black/60 text-gray-300 hover:text-white p-3 rounded-full transition-all border border-gray-600/30">
+                    <Info size={20} />
+                  </button>
+                  <button className="bg-black/40 hover:bg-black/60 text-gray-300 hover:text-white p-3 rounded-full transition-all border border-gray-600/30">
+                    <MessageCircle size={20} />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'premium' && (
               <div className="text-center py-20">
                 <Crown className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
@@ -509,7 +728,37 @@ const Dashboard = () => {
               </div>
             )}
 
-            {/* Más tabs... */}
+            {activeTab === 'messages' && (
+              <div className="text-center py-20">
+                <Mail className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Mensajes</h3>
+                <p className="text-gray-400">Tus conversaciones privadas</p>
+              </div>
+            )}
+
+            {activeTab === 'notifications' && (
+              <div className="text-center py-20">
+                <Bell className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Notificaciones</h3>
+                <p className="text-gray-400">Mantente al día con las últimas novedades</p>
+              </div>
+            )}
+
+            {activeTab === 'bookmarks' && (
+              <div className="text-center py-20">
+                <Bookmark className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Contenido Guardado</h3>
+                <p className="text-gray-400">Tus posts favoritos guardados</p>
+              </div>
+            )}
+
+            {activeTab === 'profile' && (
+              <div className="text-center py-20">
+                <User className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Tu Perfil</h3>
+                <p className="text-gray-400">Gestiona tu información personal</p>
+              </div>
+            )}
           </div>
         </div>
 
