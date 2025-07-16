@@ -144,3 +144,45 @@ CREATE TRIGGER update_content_updated_at BEFORE UPDATE ON content
 
 CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON comments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+
+-- Actualizar esquema de base de datos
+-- Ejecutar en PostgreSQL
+
+-- Tabla de likes para contenido
+CREATE TABLE IF NOT EXISTS content_likes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    content_id UUID NOT NULL REFERENCES content(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(content_id, user_id) -- Un usuario solo puede dar like una vez por post
+);
+
+-- Índices para mejorar performance
+CREATE INDEX IF NOT EXISTS idx_content_likes_content_id ON content_likes(content_id);
+CREATE INDEX IF NOT EXISTS idx_content_likes_user_id ON content_likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_content_created_at ON content(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_content_user_id ON content(user_id);
+
+-- Función para actualizar updated_at automáticamente
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger para actualizar updated_at en la tabla users
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at 
+    BEFORE UPDATE ON users 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger para actualizar updated_at en la tabla content
+DROP TRIGGER IF EXISTS update_content_updated_at ON content;
+CREATE TRIGGER update_content_updated_at 
+    BEFORE UPDATE ON content 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();

@@ -34,22 +34,32 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Middleware de logging para desarrollo
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
+    next();
+  });
+}
+
 // Rutas básicas
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Rutas de autenticación
+// Rutas principales
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/content', require('./routes/content')); // ⭐ Nueva ruta
 
-// Otras rutas (implementar después)
+// Rutas futuras (comentadas para implementar después)
 // app.use('/api/users', require('./routes/users'));
-// app.use('/api/content', require('./routes/content'));
 // app.use('/api/payments', require('./routes/payments'));
+// app.use('/api/matching', require('./routes/matching'));
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
@@ -77,6 +87,19 @@ app.use((err, req, res, next) => {
     });
   }
 
+  // Error de base de datos
+  if (err.code === '23505') { // Duplicate key
+    return res.status(400).json({
+      message: 'Duplicate entry error'
+    });
+  }
+
+  if (err.code === '23503') { // Foreign key violation
+    return res.status(400).json({
+      message: 'Referenced record not found'
+    });
+  }
+
   res.status(500).json({ 
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : {}
@@ -95,4 +118,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 API available at http://localhost:${PORT}/api`);
   console.log(`🛡️  Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🔐 Auth routes: http://localhost:${PORT}/api/auth`);
+  console.log(`📝 Content routes: http://localhost:${PORT}/api/content`);
 });
