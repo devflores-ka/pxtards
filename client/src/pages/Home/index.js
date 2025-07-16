@@ -1,5 +1,5 @@
 // client/src/pages/Home/index.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Flame, 
   Heart, 
@@ -10,53 +10,13 @@ import {
   Users, 
   Camera, 
   Lock,
-  User,
-  LogOut,
   X
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
 import AuthForm from '../../components/auth/AuthForm';
-import Dashboard from '../Dashboard';
 
 const Home = () => {
-  const { user, isAuthenticated, logout, isLoading } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-
-  // Efecto para monitorear cambios de autenticación
-  useEffect(() => {
-    console.log('🔍 Estado de autenticación cambió:', { 
-      isAuthenticated, 
-      user: user?.username,
-      isLoading 
-    });
-  }, [isAuthenticated, user, isLoading]);
-
-  // Cerrar modal cuando se autentica exitosamente
-  useEffect(() => {
-    if (isAuthenticated && showLoginModal) {
-      console.log('✅ Usuario autenticado, cerrando modal');
-      setShowLoginModal(false);
-    }
-  }, [isAuthenticated, showLoginModal]);
-
-  // Si el usuario está autenticado, mostrar el dashboard
-  if (isAuthenticated && user) {
-    console.log('🚀 Redirigiendo al Dashboard para:', user.username);
-    return <Dashboard />;
-  }
-
-  // Si aún está cargando, mostrar loader
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400 mx-auto"></div>
-          <p className="text-white mt-4">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
 
   const switchTab = (tab) => {
     setActiveTab(tab);
@@ -87,13 +47,13 @@ const Home = () => {
     },
     {
       id: 3,
-      name: 'Luna Art',
-      username: '@luna_creates',
+      name: 'Alex Creative',
+      username: '@alex_art',
       avatar: '/api/placeholder/80/80',
       banner: '/api/placeholder/300/200',
       followers: '67K',
       isVerified: false,
-      type: 'Digital Artist',
+      type: 'Artist',
       preview: '/api/placeholder/200/300'
     }
   ];
@@ -101,28 +61,34 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-800">
       {/* Header */}
-      <header className="bg-black/50 backdrop-blur-md border-b border-purple-500/30 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                PXTards
-              </h1>
-              <Flame className="text-purple-400" size={24} />
+      <header className="bg-black/60 backdrop-blur-md border-b border-purple-500/20">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                <Flame className="text-white" size={20} />
+              </div>
+              <h1 className="text-2xl font-bold text-white">PXTards</h1>
             </div>
             
-            <nav className="hidden md:flex items-center gap-6">
-              <a href="#" className="text-purple-300 hover:text-white transition-colors">Explorar</a>
-              <a href="#" className="text-purple-300 hover:text-white transition-colors">Creadores</a>
-              <a href="#" className="text-purple-300 hover:text-white transition-colors">Premium</a>
-            </nav>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-semibold transition-all"
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => {
+                  setActiveTab('login');
+                  setShowLoginModal(true);
+                }}
+                className="text-white hover:text-purple-300 transition-colors"
               >
                 Iniciar Sesión
+              </button>
+              <button 
+                onClick={() => {
+                  setActiveTab('register');
+                  setShowLoginModal(true);
+                }}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full hover:from-purple-700 hover:to-pink-700 transition-all"
+              >
+                Registrarse
               </button>
             </div>
           </div>
@@ -130,208 +96,123 @@ const Home = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden">
-        {/* Background effects */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-72 h-72 bg-pink-500 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-7xl font-bold text-white mb-6">
-              Contenido
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {' '}Exclusivo
-              </span>
-            </h2>
-            <p className="text-xl text-purple-200 mb-8 max-w-2xl mx-auto">
-              Descubre a los mejores creadores de contenido premium y accede a material exclusivo
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={() => setShowLoginModal(true)}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all"
-              >
-                Explorar Ahora
-              </button>
-              <button className="border border-purple-400 text-purple-300 hover:bg-purple-900/50 px-8 py-4 rounded-lg font-semibold text-lg transition-all">
-                Conoce Más
-              </button>
-            </div>
-          </div>
-
-          {/* Featured preview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="relative group">
-                <div className="bg-black/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30 hover:border-purple-400/50 transition-all">
-                  <div className="aspect-square bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg mb-4 flex items-center justify-center">
-                    <Camera className="text-white opacity-50" size={48} />
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-purple-600 rounded-full"></div>
-                    <span className="text-white font-medium">Creator {i}</span>
-                    <Star className="text-purple-400" size={16} />
-                  </div>
-                  <p className="text-gray-300 text-sm">Contenido exclusivo disponible</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Creators */}
-      <section className="py-20 px-4 bg-black/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h3 className="text-4xl font-bold text-white mb-4">Creadores Destacados</h3>
-            <p className="text-purple-200 text-lg">Los mejores creadores de contenido premium</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredCreators.map(creator => (
-              <div key={creator.id} className="bg-black/50 backdrop-blur-sm rounded-xl overflow-hidden border border-purple-500/30 hover:border-purple-400/50 transition-all group">
-                {/* Banner */}
-                <div className="relative h-32 bg-gradient-to-r from-purple-600 to-pink-600">
-                  <img 
-                    src={creator.banner} 
-                    alt="Banner"
-                    className="w-full h-full object-cover opacity-80"
-                  />
-                  <div className="absolute inset-0 bg-black/20"></div>
-                </div>
-
-                {/* Profile */}
-                <div className="relative px-6 pb-6">
-                  <div className="flex items-start justify-between -mt-8 mb-4">
-                    <div className="relative">
-                      <img 
-                        src={creator.avatar} 
-                        alt={creator.name}
-                        className="w-16 h-16 rounded-full border-4 border-purple-500 bg-black"
-                      />
-                      {creator.isVerified && (
-                        <Star className="absolute -top-1 -right-1 w-5 h-5 text-blue-400 fill-current" />
-                      )}
-                    </div>
-                    <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg font-medium transition-all">
-                      Seguir
-                    </button>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="text-white font-bold text-lg">{creator.name}</h4>
-                    <p className="text-purple-300">{creator.username}</p>
-                    <p className="text-gray-400 text-sm">{creator.type}</p>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="text-center">
-                        <div className="text-white font-bold">{creator.followers}</div>
-                        <div className="text-gray-400 text-xs">Seguidores</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Crown className="text-yellow-400" size={16} />
-                      <span className="text-yellow-400 text-sm">Premium</span>
-                    </div>
-                  </div>
-
-                  {/* Preview */}
-                  <div className="relative rounded-lg overflow-hidden mb-4">
-                    <img 
-                      src={creator.preview} 
-                      alt="Preview"
-                      className="w-full h-40 object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="text-center">
-                        <Lock className="w-8 h-8 text-white mx-auto mb-2" />
-                        <p className="text-white text-sm">Vista previa</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setShowLoginModal(true)}
-                      className="flex-1 bg-purple-900/50 text-purple-300 hover:bg-purple-800 py-2 rounded-lg font-medium transition-all"
-                    >
-                      {creator.isVerified ? 'Suscribirse' : 'Registrarse'}
-                    </button>
-                    <button className="bg-purple-900/50 text-purple-300 hover:bg-purple-800 p-2 rounded-lg transition-all">
-                      <Heart size={20} />
-                    </button>
-                    <button className="bg-purple-900/50 text-purple-300 hover:bg-purple-800 p-2 rounded-lg transition-all">
-                      <MessageCircle size={20} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
       <section className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-purple-400 mb-2">50K+</div>
-              <div className="text-purple-200">Usuarios Activos</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-400 mb-2">2K+</div>
-              <div className="text-purple-200">Creadores</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-400 mb-2">500K+</div>
-              <div className="text-purple-200">Contenidos Únicos</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-400 mb-2">24/7</div>
-              <div className="text-purple-200">Soporte</div>
-            </div>
+        <div className="container mx-auto text-center">
+          <h2 className="text-5xl font-bold text-white mb-6">
+            Conecta con tus <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">creadores favoritos</span>
+          </h2>
+          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+            Únete a la plataforma más exclusiva para contenido premium. Apoya a tus creadores favoritos y disfruta de experiencias únicas.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              onClick={() => {
+                setActiveTab('register');
+                setShowLoginModal(true);
+              }}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all"
+            >
+              Comenzar Ahora
+            </button>
+            <button 
+              onClick={() => {
+                setActiveTab('login');
+                setShowLoginModal(true);
+              }}
+              className="border-2 border-purple-400 text-purple-400 px-8 py-3 rounded-full text-lg font-semibold hover:bg-purple-400 hover:text-white transition-all"
+            >
+              Explorar
+            </button>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-black/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h3 className="text-4xl font-bold text-white mb-4">¿Por Qué PXTards?</h3>
-            <p className="text-purple-200 text-lg">La mejor experiencia para creadores y usuarios</p>
+      <section className="py-16 px-4">
+        <div className="container mx-auto">
+          <h3 className="text-3xl font-bold text-white text-center mb-12">
+            ¿Por qué elegir PXTards?
+          </h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-8 text-center border border-purple-500/20">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Crown className="text-white" size={32} />
+              </div>
+              <h4 className="text-xl font-semibold text-white mb-4">Contenido Exclusivo</h4>
+              <p className="text-gray-300">
+                Accede a contenido premium y exclusivo de tus creadores favoritos. Experiencias únicas que no encontrarás en otro lugar.
+              </p>
+            </div>
+            
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-8 text-center border border-purple-500/20">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Shield className="text-white" size={32} />
+              </div>
+              <h4 className="text-xl font-semibold text-white mb-4">Seguro y Privado</h4>
+              <p className="text-gray-300">
+                Tu privacidad es nuestra prioridad. Plataforma segura con encriptación de extremo a extremo y pagos protegidos.
+              </p>
+            </div>
+            
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-8 text-center border border-purple-500/20">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="text-white" size={32} />
+              </div>
+              <h4 className="text-xl font-semibold text-white mb-4">Comunidad</h4>
+              <p className="text-gray-300">
+                Únete a una comunidad vibrante. Interactúa directamente con creadores y otros fans en un ambiente respetuoso.
+              </p>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="text-white" size={24} />
+      {/* Featured Creators */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto">
+          <h3 className="text-3xl font-bold text-white text-center mb-12">
+            Creadores Destacados
+          </h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            {featuredCreators.map((creator) => (
+              <div key={creator.id} className="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden border border-purple-500/20 hover:border-purple-400/40 transition-all">
+                <div className="relative">
+                  <img 
+                    src={creator.banner} 
+                    alt={creator.name}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute bottom-4 left-4 flex items-center space-x-2">
+                    <img 
+                      src={creator.avatar} 
+                      alt={creator.name}
+                      className="w-12 h-12 rounded-full border-2 border-white"
+                    />
+                    <div>
+                      <div className="flex items-center space-x-1">
+                        <h4 className="text-white font-semibold">{creator.name}</h4>
+                        {creator.isVerified && (
+                          <Shield className="text-blue-400" size={16} />
+                        )}
+                      </div>
+                      <p className="text-gray-300 text-sm">{creator.username}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-purple-400 text-sm">{creator.type}</span>
+                    <div className="flex items-center space-x-1">
+                      <Users className="text-gray-400" size={16} />
+                      <span className="text-gray-300 text-sm">{creator.followers}</span>
+                    </div>
+                  </div>
+                  <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all">
+                    Ver Perfil
+                  </button>
+                </div>
               </div>
-              <h4 className="text-white font-bold text-xl mb-2">Seguridad Total</h4>
-              <p className="text-gray-300">Tu privacidad y seguridad son nuestra prioridad número uno</p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-pink-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Crown className="text-white" size={24} />
-              </div>
-              <h4 className="text-white font-bold text-xl mb-2">Contenido Premium</h4>
-              <p className="text-gray-300">Accede a contenido exclusivo de los mejores creadores</p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="text-white" size={24} />
-              </div>
-              <h4 className="text-white font-bold text-xl mb-2">Comunidad</h4>
-              <p className="text-gray-300">Conecta con creadores y otros usuarios en nuestra comunidad</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -340,13 +221,16 @@ const Home = () => {
       <section className="py-20 px-4 bg-gradient-to-r from-purple-900 to-pink-900">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            ¿Listo para Descubrir lo Prohibido?
+            ¿Listo para Comenzar tu Experiencia Premium?
           </h2>
           <p className="text-xl text-purple-100 mb-8">
-            Únete a miles de usuarios que ya disfrutan del mejor contenido premium
+            Únete a miles de usuarios que ya disfrutan del mejor contenido exclusivo
           </p>
           <button 
-            onClick={() => setShowLoginModal(true)}
+            onClick={() => {
+              setActiveTab('register');
+              setShowLoginModal(true);
+            }}
             className="bg-white text-purple-900 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-all"
           >
             Comenzar Ahora
@@ -373,27 +257,30 @@ const Home = () => {
             <div>
               <h4 className="text-white font-semibold mb-4">Plataforma</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">Explorar</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">Creadores</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">Premium</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Explorar</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Creadores</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Premium</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Comunidad</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-white font-semibold mb-4">Soporte</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">Centro de Ayuda</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">Contacto</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">FAQ</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Centro de Ayuda</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Contacto</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">FAQ</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Guías</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">Privacidad</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">Términos</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-purple-400">Cookies</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Privacidad</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Términos</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">Cookies</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">DMCA</a></li>
               </ul>
             </div>
           </div>
@@ -406,25 +293,36 @@ const Home = () => {
         </div>
       </footer>
 
-      {/* Modal de Login */}
+      {/* Modal de Login/Registro */}
       {showLoginModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-black/90 backdrop-blur-md rounded-2xl p-8 w-full max-w-md border border-purple-500/30">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                {activeTab === 'login' ? 'Iniciar Sesión' : 'Registro'}
+          <div className="bg-black/90 backdrop-blur-md rounded-2xl p-8 max-w-md w-full relative border border-purple-500/20">
+            <button 
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X size={24} />
+            </button>
+            
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Flame className="text-white" size={32} />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {activeTab === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
               </h2>
-              <button 
-                onClick={() => setShowLoginModal(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                <X size={24} />
-              </button>
+              <p className="text-gray-300">
+                {activeTab === 'login' 
+                  ? 'Accede a tu cuenta para continuar' 
+                  : 'Únete a la comunidad exclusiva'
+                }
+              </p>
             </div>
 
             <AuthForm 
-              onClose={() => setShowLoginModal(false)}
-              initialTab={activeTab}
+              mode={activeTab}
+              onSwitchMode={switchTab}
+              onSuccess={() => setShowLoginModal(false)}
             />
           </div>
         </div>
