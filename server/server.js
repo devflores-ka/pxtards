@@ -1,3 +1,4 @@
+// server/server.js
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -55,10 +56,10 @@ app.get('/api/health', (req, res) => {
 // Rutas principales
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/content', require('./routes/content'));
-app.use('/api/comments', require('./routes/comments')); // ⭐ Nueva ruta de comentarios
+app.use('/api/comments', require('./routes/comments'));
+app.use('/api/users', require('./routes/users')); // ⭐ Nueva ruta de usuarios
 
 // Rutas futuras (comentadas para implementar después)
-// app.use('/api/users', require('./routes/users'));
 // app.use('/api/payments', require('./routes/payments'));
 // app.use('/api/matching', require('./routes/matching'));
 
@@ -103,24 +104,24 @@ app.use((err, req, res, next) => {
 
   res.status(500).json({ 
     message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ 
-    message: 'Route not found',
-    path: req.originalUrl
+  res.status(404).json({
+    message: 'Route not found'
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 API available at http://localhost:${PORT}/api`);
-  console.log(`🛡️  Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🔐 Auth routes: http://localhost:${PORT}/api/auth`);
-  console.log(`📝 Content routes: http://localhost:${PORT}/api/content`);
-  console.log(`💬 Comments routes: http://localhost:${PORT}/api/comments`);
+  console.log(`
+🚀 Server running on port ${PORT}
+🌍 Environment: ${process.env.NODE_ENV || 'development'}
+📡 API Base: http://localhost:${PORT}/api
+🔗 Health Check: http://localhost:${PORT}/api/health
+  `);
 });
+
+module.exports = app;
