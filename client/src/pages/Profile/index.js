@@ -138,6 +138,24 @@ const Profile = () => {
     return num.toString();
   };
 
+  // Filtrar posts según el tab activo
+  const getFilteredPosts = () => {
+    if (!profile?.posts) return [];
+    
+    switch (activeTab) {
+      case 'posts':
+        return profile.posts;
+      case 'media':
+        // Solo posts que tienen mediaUrl (imagen, video, etc.)
+        return profile.posts.filter(post => post.mediaUrl && post.mediaUrl.trim() !== '');
+      case 'likes':
+        // Aquí irían los posts que le gustan al usuario (por implementar)
+        return [];
+      default:
+        return profile.posts;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-800 flex items-center justify-center">
@@ -166,6 +184,8 @@ const Profile = () => {
       </div>
     );
   }
+
+  const filteredPosts = getFilteredPosts();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-800">
@@ -197,9 +217,12 @@ const Profile = () => {
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-purple-600 to-pink-600" />
           )}
-          
-          {/* Profile Image */}
-          <div className="absolute -bottom-16 left-6">
+        </div>
+
+        {/* Profile Section */}
+        <div className="relative px-6">
+          {/* Profile Image - Posicionada correctamente */}
+          <div className="absolute -top-16 left-6">
             <div className="w-32 h-32 bg-black rounded-full p-1">
               <div className="w-full h-full bg-purple-600 rounded-full flex items-center justify-center overflow-hidden">
                 {profile?.profileImage ? (
@@ -214,27 +237,9 @@ const Profile = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Profile Info */}
-        <div className="mt-20 px-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-2xl font-bold text-white">
-                  {profile?.displayName || profile?.username}
-                </h1>
-                {profile?.isVerified && (
-                  <Verified className="text-blue-400" size={20} />
-                )}
-                {profile?.isCreator && (
-                  <Crown className="text-yellow-400" size={20} />
-                )}
-              </div>
-              <p className="text-gray-400">@{profile?.username}</p>
-            </div>
-
-            {/* Action Buttons */}
+          {/* Action Buttons - Alineados a la derecha */}
+          <div className="flex justify-end pt-4 mb-4">
             <div className="flex gap-2">
               {profile?.isOwnProfile ? (
                 <button
@@ -277,152 +282,207 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Bio */}
-          {profile?.bio && (
-            <p className="text-gray-300 mb-4 leading-relaxed">
-              {profile.bio}
-            </p>
-          )}
-
-          {/* Creator Info */}
-          {profile?.isCreator && (
-            <div className="flex items-center gap-4 mb-4 text-sm text-gray-400">
-              <div className="flex items-center gap-1">
-                <DollarSign size={14} />
-                <span>Suscripción: ${profile.subscriptionPrice}/mes</span>
-              </div>
-            </div>
-          )}
-
-          {/* Join Date */}
-          <div className="flex items-center gap-1 text-sm text-gray-400 mb-4">
-            <Calendar size={14} />
-            <span>Se unió en {formatDate(profile?.createdAt)}</span>
-          </div>
-
-          {/* Stats */}
-          <div className="flex gap-6 mb-6">
-            <button
-              onClick={() => openFollowersModal('following')}
-              className="hover:underline"
-            >
-              <span className="text-white font-bold">{formatNumber(profile?.followingCount || 0)}</span>
-              <span className="text-gray-400 ml-1">siguiendo</span>
-            </button>
-            
-            <button
-              onClick={() => openFollowersModal('followers')}
-              className="hover:underline"
-            >
-              <span className="text-white font-bold">{formatNumber(profile?.followersCount || 0)}</span>
-              <span className="text-gray-400 ml-1">seguidores</span>
-            </button>
-
-            <div>
-              <span className="text-white font-bold">{formatNumber(profile?.stats?.totalLikesReceived || 0)}</span>
-              <span className="text-gray-400 ml-1">likes</span>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="border-b border-purple-500/20 mb-6">
-            <div className="flex gap-8">
-              <button
-                onClick={() => setActiveTab('posts')}
-                className={`pb-3 px-1 border-b-2 transition-colors ${
-                  activeTab === 'posts'
-                    ? 'border-purple-400 text-white'
-                    : 'border-transparent text-gray-400 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Grid size={16} />
-                  Posts
-                </div>
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('media')}
-                className={`pb-3 px-1 border-b-2 transition-colors ${
-                  activeTab === 'media'
-                    ? 'border-purple-400 text-white'
-                    : 'border-transparent text-gray-400 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Camera size={16} />
-                  Media
-                </div>
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('likes')}
-                className={`pb-3 px-1 border-b-2 transition-colors ${
-                  activeTab === 'likes'
-                    ? 'border-purple-400 text-white'
-                    : 'border-transparent text-gray-400 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Heart size={16} />
-                  Likes
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div>
-            {activeTab === 'posts' && (
-              <div className="space-y-6">
-                {profile?.posts && profile.posts.length > 0 ? (
-                  profile.posts.map(post => (
-                    <Post 
-                      key={post.id} 
-                      post={{
-                        ...post,
-                        user: {
-                          id: profile.id,
-                          username: profile.username,
-                          displayName: profile.displayName,
-                          profileImage: profile.profileImage,
-                          isCreator: profile.isCreator,
-                          isVerified: profile.isVerified
-                        }
-                      }}
-                      currentUser={currentUser}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center py-12">
-                    <Grid className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-white mb-2">No hay posts aún</h3>
-                    <p className="text-gray-400">
-                      {profile?.isOwnProfile 
-                        ? 'Comparte tu primer post para empezar'
-                        : 'Este usuario no ha publicado nada aún'
-                      }
-                    </p>
-                  </div>
+          {/* Profile Info - Con espacio adecuado para la imagen */}
+          <div className="pt-8">
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="text-2xl font-bold text-white">
+                  {profile?.displayName || profile?.username}
+                </h1>
+                {profile?.isVerified && (
+                  <Verified className="text-blue-400" size={20} />
+                )}
+                {profile?.isCreator && (
+                  <Crown className="text-yellow-400" size={20} />
                 )}
               </div>
+              <p className="text-gray-400">@{profile?.username}</p>
+            </div>
+
+            {/* Bio */}
+            {profile?.bio && (
+              <p className="text-gray-300 mb-4 leading-relaxed">
+                {profile.bio}
+              </p>
             )}
 
-            {activeTab === 'media' && (
-              <div className="text-center py-12">
-                <Camera className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Contenido multimedia</h3>
-                <p className="text-gray-400">Las fotos y videos aparecerán aquí</p>
+            {/* Creator Info */}
+            {profile?.isCreator && (
+              <div className="flex items-center gap-4 mb-4 text-sm text-gray-400">
+                <div className="flex items-center gap-1">
+                  <DollarSign size={14} />
+                  <span>Suscripción: ${profile.subscriptionPrice}/mes</span>
+                </div>
               </div>
             )}
 
-            {activeTab === 'likes' && (
-              <div className="text-center py-12">
-                <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Posts que le gustan</h3>
-                <p className="text-gray-400">Los posts con like aparecerán aquí</p>
+            {/* Join Date */}
+            <div className="flex items-center gap-1 text-sm text-gray-400 mb-4">
+              <Calendar size={14} />
+              <span>Se unió en {formatDate(profile?.createdAt)}</span>
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-6 mb-6">
+              <button
+                onClick={() => openFollowersModal('following')}
+                className="hover:underline"
+              >
+                <span className="text-white font-bold">{formatNumber(profile?.followingCount || 0)}</span>
+                <span className="text-gray-400 ml-1">siguiendo</span>
+              </button>
+              
+              <button
+                onClick={() => openFollowersModal('followers')}
+                className="hover:underline"
+              >
+                <span className="text-white font-bold">{formatNumber(profile?.followersCount || 0)}</span>
+                <span className="text-gray-400 ml-1">seguidores</span>
+              </button>
+
+              <div>
+                <span className="text-white font-bold">{formatNumber(profile?.stats?.totalLikesReceived || 0)}</span>
+                <span className="text-gray-400 ml-1">likes</span>
               </div>
-            )}
+            </div>
+
+            {/* Tabs */}
+            <div className="border-b border-purple-500/20 mb-6">
+              <div className="flex gap-8">
+                <button
+                  onClick={() => setActiveTab('posts')}
+                  className={`pb-3 px-1 border-b-2 transition-colors ${
+                    activeTab === 'posts'
+                      ? 'border-purple-400 text-white'
+                      : 'border-transparent text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Grid size={16} />
+                    Posts
+                    <span className="text-xs text-gray-500">
+                      ({formatNumber(profile?.posts?.length || 0)})
+                    </span>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('media')}
+                  className={`pb-3 px-1 border-b-2 transition-colors ${
+                    activeTab === 'media'
+                      ? 'border-purple-400 text-white'
+                      : 'border-transparent text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Camera size={16} />
+                    Media
+                    <span className="text-xs text-gray-500">
+                      ({formatNumber(profile?.posts?.filter(p => p.mediaUrl)?.length || 0)})
+                    </span>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('likes')}
+                  className={`pb-3 px-1 border-b-2 transition-colors ${
+                    activeTab === 'likes'
+                      ? 'border-purple-400 text-white'
+                      : 'border-transparent text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Heart size={16} />
+                    Likes
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div>
+              {activeTab === 'posts' && (
+                <div>
+                  {filteredPosts.length > 0 ? (
+                    <div className="space-y-6">
+                      {filteredPosts.map(post => (
+                        <Post 
+                          key={post.id} 
+                          post={{
+                            ...post,
+                            user: {
+                              id: profile.id,
+                              username: profile.username,
+                              displayName: profile.displayName,
+                              profileImage: profile.profileImage,
+                              isCreator: profile.isCreator,
+                              isVerified: profile.isVerified
+                            }
+                          }}
+                          currentUser={currentUser}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Grid className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-2">No hay posts aún</h3>
+                      <p className="text-gray-400">
+                        {profile?.isOwnProfile 
+                          ? 'Comparte tu primer post para empezar'
+                          : 'Este usuario no ha publicado nada aún'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'media' && (
+                <div>
+                  {filteredPosts.length > 0 ? (
+                    <div className="space-y-6">
+                      {filteredPosts.map(post => (
+                        <Post 
+                          key={post.id} 
+                          post={{
+                            ...post,
+                            user: {
+                              id: profile.id,
+                              username: profile.username,
+                              displayName: profile.displayName,
+                              profileImage: profile.profileImage,
+                              isCreator: profile.isCreator,
+                              isVerified: profile.isVerified
+                            }
+                          }}
+                          currentUser={currentUser}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Camera className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-2">No hay contenido multimedia</h3>
+                      <p className="text-gray-400">
+                        {profile?.isOwnProfile 
+                          ? 'Comparte fotos y videos para que aparezcan aquí'
+                          : 'Este usuario no ha compartido contenido multimedia aún'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'likes' && (
+                <div className="text-center py-12">
+                  <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">Posts que le gustan</h3>
+                  <p className="text-gray-400">Los posts con like aparecerán aquí próximamente</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

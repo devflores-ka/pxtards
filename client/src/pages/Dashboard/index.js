@@ -28,12 +28,16 @@ import {
   Zap,
   X,
   MapPin,
-  Info
+  Info,
+  Verified
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import FeedSection from '../../components/common/FeedSection';
+import SearchUsers from '../../components/common/SearchUsers';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [currentDateProfile, setCurrentDateProfile] = useState(null);
@@ -76,12 +80,12 @@ const Dashboard = () => {
       profileImage: '/api/placeholder/300/400',
       age: 22,
       location: 'Austin, TX',
-      bio: 'Artista digital y diseñadora. Creo contenido único y colorido. Siempre buscando inspiración 🎨',
-      interests: ['Arte Digital', 'Diseño', 'Gaming', 'Anime', 'Café'],
-      tier: 'standard',
+      bio: 'Artista digital y diseñadora. Creo contenido único y colorido. Amante del café y los atardeceres 🎨',
+      interests: ['Arte', 'Diseño', 'Ilustración', 'Café', 'Naturaleza'],
+      tier: 'creator',
       subscriptionPrice: 9.99,
       isVerified: false,
-      followerCount: '3.2K'
+      followerCount: '5.2K'
     }
   ];
 
@@ -91,58 +95,55 @@ const Dashboard = () => {
   }, []);
 
   const handleDateLike = () => {
-    const currentIndex = dateProfiles.findIndex(p => p.id === currentDateProfile.id);
-    const nextIndex = (currentIndex + 1) % dateProfiles.length;
-    setCurrentDateProfile(dateProfiles[nextIndex]);
+    console.log('❤️ Like para:', currentDateProfile?.username);
+    // Aquí iría la lógica para dar like
+    loadNextProfile();
   };
 
   const handleDatePass = () => {
-    const currentIndex = dateProfiles.findIndex(p => p.id === currentDateProfile.id);
+    console.log('👎 Pass para:', currentDateProfile?.username);
+    // Aquí iría la lógica para hacer pass
+    loadNextProfile();
+  };
+
+  const loadNextProfile = () => {
+    const currentIndex = dateProfiles.findIndex(p => p.id === currentDateProfile?.id);
     const nextIndex = (currentIndex + 1) % dateProfiles.length;
     setCurrentDateProfile(dateProfiles[nextIndex]);
   };
 
+  const handleProfileClick = () => {
+    navigate(`/profile/${user?.username}`);
+  };
+
   const DateCard = ({ profile }) => (
-    <div className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 backdrop-blur-sm rounded-2xl border border-purple-500/20 overflow-hidden max-w-sm w-full">
-      {/* Imagen principal */}
-      <div className="relative h-80 bg-gradient-to-br from-purple-600 to-pink-600">
+    <div className="bg-black/40 backdrop-blur-sm rounded-xl border border-purple-500/20 overflow-hidden max-w-sm mx-auto">
+      {/* Image */}
+      <div className="relative h-96 bg-gradient-to-br from-purple-600 to-pink-600">
         <img 
-          src={profile?.profileImage || '/api/placeholder/300/400'} 
+          src={profile?.profileImage} 
           alt={profile?.displayName}
           className="w-full h-full object-cover"
         />
         
-        {/* Overlay con información básica */}
+        {/* Overlay info */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-white text-xl font-bold">{profile?.displayName}</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-white text-xl font-bold">
+              {profile?.displayName}, {profile?.age}
+            </h3>
             {profile?.isVerified && (
-              <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">✓</span>
-              </div>
+              <Verified className="text-blue-400" size={20} />
             )}
-          </div>
-          <div className="flex items-center gap-4 text-sm text-gray-300">
-            <span>{profile?.age} años</span>
-            <div className="flex items-center gap-1">
-              <MapPin size={12} />
-              <span>{profile?.location}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Badge de tier */}
-        {profile?.tier && (
-          <div className="absolute top-4 right-4">
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              profile.tier === 'premium' ? 'bg-purple-600 text-white' :
-              profile.tier === 'gold' ? 'bg-yellow-500 text-black' :
+            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+              profile?.tier === 'premium' ? 'bg-purple-600 text-white' :
+              profile?.tier === 'gold' ? 'bg-yellow-500 text-black' :
               'bg-gray-600 text-white'
             }`}>
               CREATOR
             </span>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Información detallada */}
@@ -222,47 +223,7 @@ const Dashboard = () => {
             }`}
           >
             <TrendingUp size={20} />
-            <span>Tendencias</span>
-          </button>
-
-          {/* SECCIÓN: Date */}
-          <button 
-            onClick={() => setActiveTab('date')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              activeTab === 'date' 
-                ? 'bg-gradient-to-r from-pink-600 to-red-600 text-white' 
-                : 'text-gray-300 hover:bg-purple-900/50 hover:text-white'
-            }`}
-          >
-            <Zap size={20} />
-            <span>Date</span>
-            <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-              ✨
-            </span>
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('premium')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              activeTab === 'premium' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-gray-300 hover:bg-purple-900/50 hover:text-white'
-            }`}
-          >
-            <Crown size={20} />
-            <span>Premium</span>
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('messages')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              activeTab === 'messages' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-gray-300 hover:bg-purple-900/50 hover:text-white'
-            }`}
-          >
-            <Mail size={20} />
-            <span>Mensajes</span>
+            <span>Dating</span>
           </button>
           
           <button 
@@ -290,7 +251,7 @@ const Dashboard = () => {
           </button>
           
           <button 
-            onClick={() => setActiveTab('profile')}
+            onClick={handleProfileClick}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === 'profile' 
                 ? 'bg-purple-600 text-white' 
@@ -306,8 +267,16 @@ const Dashboard = () => {
       {/* User info */}
       <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-purple-500/20">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
-            <User size={16} />
+          <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+            {user?.profileImage ? (
+              <img 
+                src={user.profileImage} 
+                alt={user.displayName || user.username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User size={16} />
+            )}
           </div>
           <div>
             <p className="text-white font-medium">{user?.displayName || user?.username}</p>
@@ -330,13 +299,8 @@ const Dashboard = () => {
     <div className="w-80 bg-black/40 backdrop-blur-sm h-screen sticky top-0 border-l border-purple-500/20">
       <div className="p-6">
         {/* Barra de búsqueda */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input 
-            type="text" 
-            placeholder="Buscar creadores..."
-            className="w-full bg-black/50 border border-purple-500/30 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-400"
-          />
+        <div className="mb-6">
+          <SearchUsers placeholder="Buscar creadores..." />
         </div>
 
         {/* Creadores sugeridos */}
@@ -382,91 +346,24 @@ const Dashboard = () => {
       <div className="flex">
         {/* Sidebar izquierdo */}
         <Sidebar />
-
+        
         {/* Contenido principal */}
-        <div className="flex-1 max-w-2xl">
-          {/* Header */}
-          <div className="sticky top-0 bg-black/60 backdrop-blur-md border-b border-purple-500/20 p-4 z-10">
-            <h2 className="text-xl font-bold text-white">
-              {activeTab === 'home' && 'Inicio'}
-              {activeTab === 'trending' && 'Tendencias'}
-              {activeTab === 'date' && 'Date - Conecta con Creadores'}
-              {activeTab === 'premium' && 'Premium'}
-              {activeTab === 'messages' && 'Mensajes'}
-              {activeTab === 'notifications' && 'Notificaciones'}
-              {activeTab === 'bookmarks' && 'Guardados'}
-              {activeTab === 'profile' && 'Perfil'}
-            </h2>
-          </div>
-
-          {/* Contenido dinámico */}
-          <div className="p-4">
-            {/* Feed principal - NUEVA INTEGRACIÓN */}
+        <div className="flex-1 min-h-screen">
+          <div className="max-w-2xl mx-auto px-6 py-8">
+            {/* Content based on active tab */}
             {activeTab === 'home' && (
-              <FeedSection user={user} />
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-6">Tu Feed</h2>
+                <FeedSection />
+              </div>
             )}
 
             {activeTab === 'trending' && (
-              <div className="text-center py-20">
-                <TrendingUp className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Tendencias</h3>
-                <p className="text-gray-400">Descubre el contenido más popular</p>
-              </div>
-            )}
-
-            {/* Date - Funcionalidad existente */}
-            {activeTab === 'date' && (
-              <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    Conecta con Creadores
-                  </h3>
-                  <p className="text-gray-400 mb-4">
-                    Descubre perfiles de creators increíbles. 
-                    Dale like para mostrar interés o pass para continuar.
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-gray-400 justify-center">
-                    <div className="flex items-center gap-1">
-                      <Heart size={16} className="text-red-400" />
-                      <span>Like para conectar</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <X size={16} className="text-gray-400" />
-                      <span>Pass para continuar</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tarjeta de perfil principal */}
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-6">Dating</h2>
                 <div className="flex justify-center">
                   <DateCard profile={currentDateProfile} />
                 </div>
-
-                {/* Controles adicionales */}
-                <div className="mt-6 flex justify-center gap-4">
-                  <button className="bg-black/40 hover:bg-black/60 text-gray-300 hover:text-white p-3 rounded-full transition-all border border-gray-600/30">
-                    <Info size={20} />
-                  </button>
-                  <button className="bg-black/40 hover:bg-black/60 text-gray-300 hover:text-white p-3 rounded-full transition-all border border-gray-600/30">
-                    <MessageCircle size={20} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'premium' && (
-              <div className="text-center py-20">
-                <Crown className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Contenido Premium</h3>
-                <p className="text-gray-400">Accede a contenido exclusivo</p>
-              </div>
-            )}
-
-            {activeTab === 'messages' && (
-              <div className="text-center py-20">
-                <Mail className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Mensajes</h3>
-                <p className="text-gray-400">Tus conversaciones privadas</p>
               </div>
             )}
 
@@ -483,14 +380,6 @@ const Dashboard = () => {
                 <Bookmark className="w-16 h-16 text-purple-400 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-white mb-2">Contenido Guardado</h3>
                 <p className="text-gray-400">Tus posts favoritos guardados</p>
-              </div>
-            )}
-
-            {activeTab === 'profile' && (
-              <div className="text-center py-20">
-                <User className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Tu Perfil</h3>
-                <p className="text-gray-400">Gestiona tu información personal</p>
               </div>
             )}
           </div>

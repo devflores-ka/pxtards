@@ -21,7 +21,7 @@ class UsersService {
     }
   }
 
-  // Obtener perfil público de usuario
+  // Obtener perfil público de usuario por ID
   async getUserProfile(userId) {
     try {
       console.log(`👤 Fetching profile for user: ${userId}`);
